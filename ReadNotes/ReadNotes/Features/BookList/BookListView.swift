@@ -33,7 +33,7 @@ struct BookListView: View {
             }
         }
         .overlay { if vm.isLoading { ProgressView() } }
-        .task { await vm.load() }
+        .onAppear { Task { await vm.load() } }
         .navigationTitle("내 책장")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
