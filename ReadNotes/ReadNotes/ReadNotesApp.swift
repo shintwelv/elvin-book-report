@@ -10,23 +10,18 @@ import SwiftData
 
 @main
 struct ReadNotesApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
+    @State private var container: ModelContainer = {
+        let schema = Schema([Book.self])
+        let config = ModelConfiguration()
+        return try! ModelContainer(for: schema, configurations: config)
     }()
 
     var body: some Scene {
         WindowGroup {
+            let env = AppEnvironment.default(container: container)
             ContentView()
+                .environment(\.appEnvironment, env)
+                .modelContainer(container)
         }
-        .modelContainer(sharedModelContainer)
     }
 }
