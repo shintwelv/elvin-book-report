@@ -46,5 +46,9 @@ struct BookListView: View {
             }
             .presentationDetents([.medium, .large])
         }
+        .onChange(of: showingAdd, initial: false) { _, isPresented in
+            guard !isPresented else { return }
+            Task { await vm.load() }
+        }
     }
 }
