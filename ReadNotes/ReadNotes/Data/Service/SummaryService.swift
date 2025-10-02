@@ -7,6 +7,12 @@
 
 import Foundation
 
+struct BookSummaryRequest {
+    let title: String
+    let author: String
+    let publisher: String
+}
+
 protocol SummaryService {
-    func summarize(_ text: String) async throws -> String
+    func summarize(_ book: BookSummaryRequest) async throws -> String
 }

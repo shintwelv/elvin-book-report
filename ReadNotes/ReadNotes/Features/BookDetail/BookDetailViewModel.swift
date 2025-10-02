@@ -30,7 +30,12 @@ final class BookDetailViewModel: ObservableObject {
     func makeSummary(from text: String) async {
         isSummarizing = true; defer { isSummarizing = false }
         do {
-            let s = try await summaryService.summarize(text)
+            let request = BookSummaryRequest(
+                title: book.title,
+                author: book.author,
+                publisher: book.publisher
+            )
+            let s = try await summaryService.summarize(request)
             book.aiSummary = s
             try await repo.update(book)
         } catch { self.error = .wrap(error) }
