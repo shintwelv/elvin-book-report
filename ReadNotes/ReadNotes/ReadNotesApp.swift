@@ -19,9 +19,24 @@ struct ReadNotesApp: App {
     var body: some Scene {
         WindowGroup {
             let env = AppEnvironment.default(container: container)
-            ContentView()
+            RootView()
                 .environment(\.appEnvironment, env)
                 .modelContainer(container)
+        }
+    }
+}
+
+struct RootView: View {
+    @Environment(\.appEnvironment) private var env
+    @State private var path = NavigationPath()
+    
+    var body: some View {
+        NavigationStack(path: $path) {
+            BookListView(vm: .init(repo: env.bookRepo))
+                .navigationDestination(for: Book.self) { book in
+                    BookDetailView(vm: .init(repo: env.bookRepo, summaryService: env.summaryService, book: book))
+                }
+                .toolbarTitleDisplayMode(.large)
         }
     }
 }
