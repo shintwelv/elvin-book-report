@@ -11,6 +11,8 @@ struct BookDetailView: View {
     @StateObject var vm: BookDetailViewModel
     @State private var thoughts: String = ""
     @State private var sourceText: String = ""
+    @State private var showActionSheet = false
+    @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         Form {
@@ -33,8 +35,24 @@ struct BookDetailView: View {
         .navigationTitle("상세")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button("저장") { Task { await vm.saveThoughts(vm.book.myThoughts) } }
+                Button {
+                    showActionSheet = true
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                }
             }
+        }
+        .confirmationDialog("", isPresented: $showActionSheet) {
+            Button("저장") {
+                Task { await vm.saveThoughts(vm.book.myThoughts) }
+            }
+            Button("삭제", role: .destructive) {
+                Task {
+                    await vm.deleteBook()
+                    dismiss()
+                }
+            }
+            Button("취소", role: .cancel) { }
         }
     }
 }

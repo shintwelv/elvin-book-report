@@ -40,4 +40,8 @@ final class BookDetailViewModel: ObservableObject {
             try await repo.update(book)
         } catch { self.error = .wrap(error) }
     }
+    
+    func deleteBook() async {
+        do { try await repo.delete(book) } catch { self.error = .wrap(error) }
+    }
 }
