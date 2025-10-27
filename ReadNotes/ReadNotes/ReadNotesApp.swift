@@ -12,7 +12,7 @@ import SwiftData
 struct ReadNotesApp: App {
     @State private var container: ModelContainer = {
         let schema = Schema([Book.self])
-        let config = ModelConfiguration()
+        let config = ModelConfiguration(cloudKitDatabase: .automatic)
         return try! ModelContainer(for: schema, configurations: config)
     }()
 

@@ -15,10 +15,19 @@ struct BookListView: View {
     var body: some View {
         Group {
             if vm.books.isEmpty {
-                EmptyStateView(
-                    title: "기록한 책이 없습니다",
-                    message: "+ 버튼으로 첫 책을 추가해보세요"
-                )
+                ScrollView {
+                    VStack {
+                        EmptyStateView(
+                            title: "기록한 책이 없습니다",
+                            message: "+ 버튼으로 첫 책을 추가해보세요"
+                        )
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.horizontal, 16)
+                        .padding(.top, 48)
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .refreshable { await vm.load() }
             } else {
                 List(vm.books, id: \.id) { book in
                     NavigationLink(value: book) {
@@ -48,6 +57,7 @@ struct BookListView: View {
                         .padding(.vertical, 4)
                     }
                 }
+                .refreshable { await vm.load() }
                 .listStyle(.plain)
             }
         }
