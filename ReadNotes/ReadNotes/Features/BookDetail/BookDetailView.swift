@@ -12,7 +12,14 @@ struct BookDetailView: View {
     @State private var thoughts: String = ""
     @State private var sourceText: String = ""
     @State private var showActionSheet = false
+    @State private var showSaveAlert = false
+    @State private var originalAiSummary = ""
+    @State private var originalMyThoughts = ""
     @Environment(\.dismiss) private var dismiss
+    
+    var hasChanges: Bool {
+        vm.book.aiSummary != originalAiSummary || vm.book.myThoughts != originalMyThoughts
+    }
     
     var body: some View {
         Form {
@@ -33,7 +40,17 @@ struct BookDetailView: View {
             }
         }
         .navigationTitle("상세")
+        .navigationBarBackButtonHidden(hasChanges)
         .toolbar {
+            if hasChanges {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        showSaveAlert = true
+                    } label: {
+                        Image(systemName: "chevron.left")
+                    }
+                }
+            }
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     showActionSheet = true
@@ -42,9 +59,33 @@ struct BookDetailView: View {
                 }
             }
         }
+        .onAppear {
+            originalAiSummary = vm.book.aiSummary
+            originalMyThoughts = vm.book.myThoughts
+        }
+        .alert("변경사항 저장", isPresented: $showSaveAlert) {
+            Button("저장") {
+                Task {
+                    await vm.saveThoughts(vm.book.myThoughts)
+                    originalAiSummary = vm.book.aiSummary
+                    originalMyThoughts = vm.book.myThoughts
+                    dismiss()
+                }
+            }
+            Button("저장 안 함", role: .destructive) {
+                dismiss()
+            }
+            Button("취소", role: .cancel) { }
+        } message: {
+            Text("변경된 내용을 저장하시겠습니까?")
+        }
         .confirmationDialog("", isPresented: $showActionSheet) {
             Button("저장") {
-                Task { await vm.saveThoughts(vm.book.myThoughts) }
+                Task { 
+                    await vm.saveThoughts(vm.book.myThoughts) 
+                    originalAiSummary = vm.book.aiSummary
+                    originalMyThoughts = vm.book.myThoughts
+                }
             }
             Button("삭제", role: .destructive) {
                 Task {
