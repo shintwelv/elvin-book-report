@@ -19,19 +19,22 @@ struct BookDetailView: View {
                 Text("\(vm.book.author) · \(vm.book.publisher)")
                     .font(.subheadline).foregroundStyle(.secondary)
             }
-            Section("AI 요약") {
+            Section("책 내용") {
                 if vm.isSummarizing { ProgressView() }
                 TextEditor(text: Binding(get: { vm.book.aiSummary }, set: { vm.book.aiSummary = $0 }))
-                    .frame(minHeight: 120)
-                TextField("요약할 원문(선택)", text: $sourceText, axis: .vertical)
-                Button("요약 생성") { Task { await vm.makeSummary(from: sourceText.isEmpty ? vm.book.myThoughts : sourceText) } }
+                    .frame(minHeight: 200)
+//                Button("요약 생성") { Task { await vm.makeSummary(from: sourceText.isEmpty ? vm.book.myThoughts : sourceText) } }
             }
             Section("내 생각") {
                 TextEditor(text: Binding(get: { vm.book.myThoughts }, set: { vm.book.myThoughts = $0 }))
-                    .frame(minHeight: 120)
-                Button("저장") { Task { await vm.saveThoughts(vm.book.myThoughts) } }
+                    .frame(minHeight: 200)
             }
         }
         .navigationTitle("상세")
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("저장") { Task { await vm.saveThoughts(vm.book.myThoughts) } }
+            }
+        }
     }
 }
