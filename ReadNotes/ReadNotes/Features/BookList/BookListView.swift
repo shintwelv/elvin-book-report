@@ -22,11 +22,30 @@ struct BookListView: View {
             } else {
                 List(vm.books, id: \.id) { book in
                     NavigationLink(value: book) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(book.title).font(.headline)
-                            Text("\(book.author) · \(book.publisher)")
-                                .font(.subheadline).foregroundStyle(.secondary)
+                        HStack(spacing: 12) {
+                            if let coverImage = book.coverImage {
+                                Image(uiImage: coverImage)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 50, height: 70)
+                                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                            } else {
+                                RoundedRectangle(cornerRadius: 6)
+                                    .fill(Color.gray.opacity(0.2))
+                                    .frame(width: 50, height: 70)
+                                    .overlay {
+                                        Image(systemName: "book.closed")
+                                            .foregroundStyle(.secondary)
+                                    }
+                            }
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(book.title).font(.headline)
+                                Text("\(book.author) · \(book.publisher)")
+                                    .font(.subheadline).foregroundStyle(.secondary)
+                            }
                         }
+                        .padding(.vertical, 4)
                     }
                 }
                 .listStyle(.plain)

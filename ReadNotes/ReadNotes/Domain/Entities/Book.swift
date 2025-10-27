@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftData
+import UIKit
 
 @Model
 final class Book: Identifiable, Hashable {
@@ -16,6 +17,7 @@ final class Book: Identifiable, Hashable {
     var publisher: String
     var myThoughts: String
     var aiSummary: String
+    var coverImageData: Data?
     var createdAt: Date
     
     init(
@@ -25,6 +27,7 @@ final class Book: Identifiable, Hashable {
         publisher: String,
         myThoughts: String = "",
         aiSummary: String = "",
+        coverImageData: Data? = nil,
         createdAt: Date = Date()
     ) {
         self.id = id
@@ -33,6 +36,18 @@ final class Book: Identifiable, Hashable {
         self.publisher = publisher
         self.myThoughts = myThoughts
         self.aiSummary = aiSummary
+        self.coverImageData = coverImageData
         self.createdAt = createdAt
+    }
+    
+    // Computed property for UIImage conversion
+    var coverImage: UIImage? {
+        get {
+            guard let data = coverImageData else { return nil }
+            return UIImage(data: data)
+        }
+        set {
+            coverImageData = newValue?.jpegData(compressionQuality: 0.8)
+        }
     }
 }

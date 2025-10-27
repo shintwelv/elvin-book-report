@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import PhotosUI
 
 struct BookDetailView: View {
     @StateObject var vm: BookDetailViewModel
@@ -15,6 +16,7 @@ struct BookDetailView: View {
     @State private var showSaveAlert = false
     @State private var originalAiSummary = ""
     @State private var originalMyThoughts = ""
+    @State private var selectedItem: PhotosPickerItem?
     @Environment(\.dismiss) private var dismiss
     
     var hasChanges: Bool {
@@ -24,6 +26,54 @@ struct BookDetailView: View {
     var body: some View {
         Form {
             Section("기본 정보") {
+                if let coverImage = vm.book.coverImage {
+                    HStack {
+                        Spacer()
+                        Image(uiImage: coverImage)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxWidth: 150, maxHeight: 200)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .shadow(radius: 4)
+                        Spacer()
+                    }
+                    .listRowBackground(Color.clear)
+                    
+                    HStack {
+                        PhotosPicker(selection: $selectedItem, matching: .images) {
+                            Label("이미지 변경", systemImage: "photo.on.rectangle")
+                                .frame(maxWidth: .infinity)
+                        }
+                        
+                        Button(role: .destructive) {
+                            vm.book.coverImage = nil
+                            Task { await vm.updateBook() }
+                        } label: {
+                            Label("이미지 삭제", systemImage: "trash")
+                                .frame(maxWidth: .infinity)
+                        }
+                    }
+                } else {
+                    HStack {
+                        Spacer()
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.gray.opacity(0.2))
+                            .frame(width: 150, height: 200)
+                            .overlay {
+                                Image(systemName: "photo")
+                                    .font(.system(size: 50))
+                                    .foregroundStyle(.secondary)
+                            }
+                        Spacer()
+                    }
+                    .listRowBackground(Color.clear)
+                    
+                    PhotosPicker(selection: $selectedItem, matching: .images) {
+                        Label("이미지 추가", systemImage: "photo.on.rectangle.angled")
+                            .frame(maxWidth: .infinity)
+                    }
+                }
+                
                 Text(vm.book.title).font(.headline)
                 Text("\(vm.book.author) · \(vm.book.publisher)")
                     .font(.subheadline).foregroundStyle(.secondary)
@@ -94,6 +144,15 @@ struct BookDetailView: View {
                 }
             }
             Button("취소", role: .cancel) { }
+        }
+        .onChange(of: selectedItem) { _, newItem in
+            Task {
+                if let data = try? await newItem?.loadTransferable(type: Data.self),
+                   let image = UIImage(data: data) {
+                    vm.book.coverImage = image
+                    await vm.updateBook()
+                }
+            }
         }
     }
 }
