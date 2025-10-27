@@ -11,14 +11,14 @@ import UIKit
 
 @Model
 final class Book: Identifiable, Hashable {
-    @Attribute(.unique) var id: String
-    var title: String
-    var author: String
-    var publisher: String
-    var myThoughts: String
-    var aiSummary: String
-    var coverImageData: Data?
-    var createdAt: Date
+    var id: String = UUID().uuidString
+    var title: String = ""
+    var author: String = ""
+    var publisher: String = ""
+    var myThoughts: String = ""
+    var aiSummary: String = ""
+    var coverImageData: Data? = nil
+    var createdAt: Date = Date()
     
     init(
         id: String = UUID().uuidString,
