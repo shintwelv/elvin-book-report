@@ -20,7 +20,7 @@ final class Book: Identifiable, Hashable {
     var coverImageData: Data? = nil
     var createdAt: Date = Date()
     
-    var modifiedAt: Date? = nil // prevent auto migration failure
+    var modifiedAt: Date? = nil // Optional to support existing books created before this field was added
     
     init(
         id: String = UUID().uuidString,
