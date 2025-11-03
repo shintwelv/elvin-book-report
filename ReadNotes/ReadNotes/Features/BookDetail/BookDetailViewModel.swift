@@ -53,7 +53,6 @@ final class BookDetailViewModel: ObservableObject {
             )
             let s = try await summaryService.summarize(request)
             aiSummary = s
-            book.aiSummary = s
             book.touch()
             try await repo.update(book)
         } catch { self.error = .wrap(error) }
