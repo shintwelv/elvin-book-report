@@ -44,11 +44,7 @@ struct ReadNotesApp: App {
             }
             try context.save()
         } catch {
-            print("Error fetching books needing backfill: \(error)")
-        }
-    }
-}
-
+            print("Error during backfill fetch or save: \(error)")
 struct RootView: View {
     @Environment(\.appEnvironment) private var env
     @State private var path = NavigationPath()
