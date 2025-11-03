@@ -86,7 +86,6 @@ struct BookDetailView: View {
                 TextEditor(text: $vm.aiSummary)
                     .frame(minHeight: 200)
                     .frame(maxHeight: 400)
-//                Button("요약 생성") { Task { await vm.makeSummary(from: sourceText.isEmpty ? vm.myThoughts : sourceText) } }
             }
             Section("내 생각") {
                 TextEditor(text: $vm.myThoughts)
