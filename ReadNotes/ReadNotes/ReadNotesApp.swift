@@ -13,7 +13,12 @@ struct ReadNotesApp: App {
     @State private var container: ModelContainer = {
         let schema = Schema([Book.self])
         let config = ModelConfiguration(cloudKitDatabase: .automatic)
-        return try! ModelContainer(for: schema, configurations: config)
+        let container = try! ModelContainer(for: schema, configurations: config)
+        
+        // Run migration once during initialization
+        backfillModifiedDateIfNeeded(container: container)
+        
+        return container
     }()
 
     var body: some Scene {
@@ -23,6 +28,20 @@ struct ReadNotesApp: App {
                 .environment(\.appEnvironment, env)
                 .modelContainer(container)
         }
+    }
+    
+    static func backfillModifiedDateIfNeeded(container: ModelContainer) {
+        let context = ModelContext(container)
+        let descriptor = FetchDescriptor<Book>(
+            predicate: #Predicate { $0.modifiedAt == nil }
+        )
+        guard let needsBackfill = try? context.fetch(descriptor),
+              !needsBackfill.isEmpty else { return }
+        
+        for book in needsBackfill {
+            book.modifiedAt = book.createdAt
+        }
+        try? context.save()
     }
 }
 
