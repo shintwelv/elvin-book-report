@@ -15,7 +15,7 @@ struct ReadNotesApp: App {
         let config = ModelConfiguration(cloudKitDatabase: .automatic)
         let container = try! ModelContainer(for: schema, configurations: config)
         
-        // Run migration once during initialization
+        // Backfill modifiedAt for existing books if needed
         backfillModifiedDateIfNeeded(container: container)
         
         return container
