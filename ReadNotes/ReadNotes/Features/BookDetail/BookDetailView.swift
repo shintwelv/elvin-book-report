@@ -20,13 +20,13 @@ struct BookDetailView: View {
     @Environment(\.dismiss) private var dismiss
     
     var hasChanges: Bool {
-        vm.book.aiSummary != originalAiSummary || vm.book.myThoughts != originalMyThoughts
+        vm.aiSummary != originalAiSummary || vm.myThoughts != originalMyThoughts
     }
     
     var body: some View {
         
         Form {
-            if let coverImage = vm.book.coverImage {
+            if let coverImage = vm.coverImage {
                 HStack {
                     Spacer()
                     Image(uiImage: coverImage)
@@ -48,8 +48,7 @@ struct BookDetailView: View {
                     Spacer()
                     
                     Button(role: .destructive) {
-                        vm.book.coverImage = nil
-                        Task { await vm.updateBook() }
+                        Task { await vm.deleteCoverImage() }
                     } label: {
                         Label("이미지 삭제", systemImage: "trash")
                             .frame(maxWidth: .infinity)
@@ -79,19 +78,19 @@ struct BookDetailView: View {
                 .listRowBackground(Color.clear)
             }
             Section("기본 정보") {
-                Text(vm.book.title).font(.headline)
-                Text("\(vm.book.author) · \(vm.book.publisher)")
+                Text(vm.title).font(.headline)
+                Text("\(vm.author) · \(vm.publisher)")
                     .font(.subheadline).foregroundStyle(.secondary)
             }
             Section("책 내용") {
                 if vm.isSummarizing { ProgressView() }
-                TextEditor(text: Binding(get: { vm.book.aiSummary }, set: { vm.book.aiSummary = $0 }))
+                TextEditor(text: $vm.aiSummary)
                     .frame(minHeight: 200)
                     .frame(maxHeight: 400)
-//                Button("요약 생성") { Task { await vm.makeSummary(from: sourceText.isEmpty ? vm.book.myThoughts : sourceText) } }
+//                Button("요약 생성") { Task { await vm.makeSummary(from: sourceText.isEmpty ? vm.myThoughts : sourceText) } }
             }
             Section("내 생각") {
-                TextEditor(text: Binding(get: { vm.book.myThoughts }, set: { vm.book.myThoughts = $0 }))
+                TextEditor(text: $vm.myThoughts)
                     .frame(minHeight: 200)
                     .frame(maxHeight: 600)
             }
@@ -117,15 +116,15 @@ struct BookDetailView: View {
             }
         }
         .onAppear {
-            originalAiSummary = vm.book.aiSummary
-            originalMyThoughts = vm.book.myThoughts
+            originalAiSummary = vm.aiSummary
+            originalMyThoughts = vm.myThoughts
         }
         .alert("변경사항 저장", isPresented: $showSaveAlert) {
             Button("저장") {
                 Task {
-                    await vm.saveThoughts(vm.book.myThoughts)
-                    originalAiSummary = vm.book.aiSummary
-                    originalMyThoughts = vm.book.myThoughts
+                    await vm.saveChanges()
+                    originalAiSummary = vm.aiSummary
+                    originalMyThoughts = vm.myThoughts
                     dismiss()
                 }
             }
@@ -139,9 +138,9 @@ struct BookDetailView: View {
         .confirmationDialog("", isPresented: $showActionSheet) {
             Button("저장") {
                 Task { 
-                    await vm.saveThoughts(vm.book.myThoughts) 
-                    originalAiSummary = vm.book.aiSummary
-                    originalMyThoughts = vm.book.myThoughts
+                    await vm.saveChanges()
+                    originalAiSummary = vm.aiSummary
+                    originalMyThoughts = vm.myThoughts
                 }
             }
             Button("삭제", role: .destructive) {
@@ -156,8 +155,7 @@ struct BookDetailView: View {
             Task {
                 if let data = try? await newItem?.loadTransferable(type: Data.self),
                    let image = UIImage(data: data) {
-                    vm.book.coverImage = image
-                    await vm.updateBook()
+                    await vm.updateCoverImage(image)
                 }
             }
         }

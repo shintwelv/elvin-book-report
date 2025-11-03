@@ -5,14 +5,20 @@
 //  Created by ShinIl Heo on 10/2/25.
 //
 
-import Foundation
+import UIKit
 
 @MainActor
 final class BookDetailViewModel: ObservableObject {
-    @Published var book: Book
+    @Published var title: String
+    @Published var author: String
+    @Published var publisher: String
+    @Published var aiSummary: String
+    @Published var myThoughts: String
+    @Published var coverImage: UIImage?
     @Published var isSummarizing = false
     @Published var error: AppError?
     
+    private var book: Book
     private let repo: BookRepository
     private let summaryService: SummaryService
     
@@ -20,10 +26,19 @@ final class BookDetailViewModel: ObservableObject {
         self.repo = repo
         self.summaryService = summaryService
         self.book = book
+        
+        // Initialize published properties
+        self.title = book.title
+        self.author = book.author
+        self.publisher = book.publisher
+        self.aiSummary = book.aiSummary
+        self.myThoughts = book.myThoughts
+        self.coverImage = book.coverImage
     }
     
-    func saveThoughts(_ text: String) async {
-        book.myThoughts = text
+    func saveChanges() async {
+        book.aiSummary = aiSummary
+        book.myThoughts = myThoughts
         book.touch()
         do { try await repo.update(book) } catch { self.error = .wrap(error) }
     }
@@ -32,11 +47,12 @@ final class BookDetailViewModel: ObservableObject {
         isSummarizing = true; defer { isSummarizing = false }
         do {
             let request = BookSummaryRequest(
-                title: book.title,
-                author: book.author,
-                publisher: book.publisher
+                title: title,
+                author: author,
+                publisher: publisher
             )
             let s = try await summaryService.summarize(request)
+            aiSummary = s
             book.aiSummary = s
             book.touch()
             try await repo.update(book)
@@ -47,7 +63,16 @@ final class BookDetailViewModel: ObservableObject {
         do { try await repo.delete(book) } catch { self.error = .wrap(error) }
     }
     
-    func updateBook() async {
+    func updateCoverImage(_ image: UIImage?) async {
+        coverImage = image
+        book.coverImage = image
+        book.touch()
+        do { try await repo.update(book) } catch { self.error = .wrap(error) }
+    }
+    
+    func deleteCoverImage() async {
+        coverImage = nil
+        book.coverImage = nil
         book.touch()
         do { try await repo.update(book) } catch { self.error = .wrap(error) }
     }
