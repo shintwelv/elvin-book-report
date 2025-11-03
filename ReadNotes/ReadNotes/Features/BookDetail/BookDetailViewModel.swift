@@ -24,6 +24,7 @@ final class BookDetailViewModel: ObservableObject {
     
     func saveThoughts(_ text: String) async {
         book.myThoughts = text
+        book.touch()
         do { try await repo.update(book) } catch { self.error = .wrap(error) }
     }
     
@@ -37,6 +38,7 @@ final class BookDetailViewModel: ObservableObject {
             )
             let s = try await summaryService.summarize(request)
             book.aiSummary = s
+            book.touch()
             try await repo.update(book)
         } catch { self.error = .wrap(error) }
     }
@@ -46,6 +48,7 @@ final class BookDetailViewModel: ObservableObject {
     }
     
     func updateBook() async {
+        book.touch()
         do { try await repo.update(book) } catch { self.error = .wrap(error) }
     }
 }
