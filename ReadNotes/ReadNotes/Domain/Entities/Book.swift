@@ -58,6 +58,4 @@ final class Book: Identifiable, Hashable {
     
     func touch() { modifiedAt = Date() }
     
-    static func == (lhs: Book, rhs: Book) -> Bool { lhs.id == rhs.id }
-    func hash(into hasher: inout Hasher) { hasher.combine(id) }
 }
