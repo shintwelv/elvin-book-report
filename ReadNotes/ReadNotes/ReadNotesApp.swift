@@ -20,7 +20,7 @@ struct ReadNotesApp: App {
         
         return container
     }()
-
+    
     var body: some Scene {
         WindowGroup {
             let env = AppEnvironment.default(container: container)
@@ -45,6 +45,10 @@ struct ReadNotesApp: App {
             try context.save()
         } catch {
             print("Error during backfill fetch or save: \(error)")
+        }
+    }
+}
+
 struct RootView: View {
     @Environment(\.appEnvironment) private var env
     @State private var path = NavigationPath()
