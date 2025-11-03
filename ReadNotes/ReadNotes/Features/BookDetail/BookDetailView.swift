@@ -24,7 +24,6 @@ struct BookDetailView: View {
     }
     
     var body: some View {
-        
         Form {
             if let coverImage = vm.coverImage {
                 HStack {
