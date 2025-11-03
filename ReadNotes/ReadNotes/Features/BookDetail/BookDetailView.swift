@@ -156,3 +156,21 @@ struct BookDetailView: View {
         }
     }
 }
+
+#Preview {
+    NavigationStack {
+        BookDetailView(
+            vm: BookDetailViewModel(
+                repo: BookRepositoryPreview(),
+                summaryService: DummySummaryService(),
+                book: Book(
+                    title: "클린 코드",
+                    author: "로버트 C. 마틴",
+                    publisher: "인사이트",
+                    myThoughts: "코드의 품질을 높이는 방법에 대해 배웠습니다.",
+                    aiSummary: "소프트웨어 장인 정신에 대한 책으로, 좋은 코드를 작성하는 방법을 다룹니다."
+                )
+            )
+        )
+    }
+}
