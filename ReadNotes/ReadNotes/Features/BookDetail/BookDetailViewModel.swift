@@ -9,9 +9,9 @@ import UIKit
 
 @MainActor
 final class BookDetailViewModel: ObservableObject {
-    @Published var title: String
-    @Published var author: String
-    @Published var publisher: String
+    let title: String
+    let author: String
+    let publisher: String
     @Published var aiSummary: String
     @Published var myThoughts: String
     @Published var coverImage: UIImage?
