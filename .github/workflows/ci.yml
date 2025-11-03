@@ -1,0 +1,37 @@
+name: iOS Build Check
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Xcode version
+        run: xcodebuild -version
+
+      # (옵션) SPM 의존성 먼저 resolve — 처음 빌드 시 캐시 없어도 안정적
+      - name: Resolve Swift Packages
+        run: |
+          xcodebuild \
+            -project ReadNotes.xcodeproj \
+            -scheme ReadNotes \
+            -resolvePackageDependencies
+
+      - name: Build (Simulator, no codesign)
+        run: |
+          xcodebuild \
+            -project ReadNotes.xcodeproj \
+            -scheme ReadNotes \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            clean build \
+            CODE_SIGNING_ALLOWED=NO
