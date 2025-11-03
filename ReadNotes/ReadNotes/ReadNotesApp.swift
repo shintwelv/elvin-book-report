@@ -35,13 +35,21 @@ struct ReadNotesApp: App {
         let descriptor = FetchDescriptor<Book>(
             predicate: #Predicate { $0.modifiedAt == nil }
         )
-        guard let needsBackfill = try? context.fetch(descriptor),
-              !needsBackfill.isEmpty else { return }
-        
-        for book in needsBackfill {
-            book.modifiedAt = book.createdAt
+        do {
+            let needsBackfill = try context.fetch(descriptor)
+            guard !needsBackfill.isEmpty else { return }
+            
+            for book in needsBackfill {
+                book.modifiedAt = book.createdAt
+            }
+            do {
+                try context.save()
+            } catch {
+                print("Error saving context during backfill: \(error)")
+            }
+        } catch {
+            print("Error fetching books needing backfill: \(error)")
         }
-        try? context.save()
     }
 }
 
