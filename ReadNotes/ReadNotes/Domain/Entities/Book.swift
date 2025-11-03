@@ -20,6 +20,8 @@ final class Book: Identifiable, Hashable {
     var coverImageData: Data? = nil
     var createdAt: Date = Date()
     
+    var modifiedAt: Date? = nil // prevent auto migration failure
+    
     init(
         id: String = UUID().uuidString,
         title: String,
@@ -38,6 +40,7 @@ final class Book: Identifiable, Hashable {
         self.aiSummary = aiSummary
         self.coverImageData = coverImageData
         self.createdAt = createdAt
+        self.modifiedAt = createdAt
     }
     
     // Computed property for UIImage conversion
@@ -50,4 +53,11 @@ final class Book: Identifiable, Hashable {
             coverImageData = newValue?.jpegData(compressionQuality: 0.8)
         }
     }
+    
+    var lastEdited: Date { modifiedAt ?? createdAt }
+    
+    func touch() { modifiedAt = Date() }
+    
+    static func == (lhs: Book, rhs: Book) -> Bool { lhs.id == rhs.id }
+    func hash(into hasher: inout Hasher) { hasher.combine(id) }
 }
