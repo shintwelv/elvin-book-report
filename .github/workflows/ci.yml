@@ -17,18 +17,10 @@ jobs:
       - name: Xcode version
         run: xcodebuild -version
 
-      # (옵션) SPM 의존성 먼저 resolve — 처음 빌드 시 캐시 없어도 안정적
-      - name: Resolve Swift Packages
-        run: |
-          xcodebuild \
-            -project ReadNotes.xcodeproj \
-            -scheme ReadNotes \
-            -resolvePackageDependencies
-
       - name: Build (Simulator, no codesign)
         run: |
           xcodebuild \
-            -project ReadNotes.xcodeproj \
+            -project ReadNotes/ReadNotes.xcodeproj \
             -scheme ReadNotes \
             -configuration Debug \
             -sdk iphonesimulator \
