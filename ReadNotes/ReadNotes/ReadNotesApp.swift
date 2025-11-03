@@ -42,11 +42,7 @@ struct ReadNotesApp: App {
             for book in needsBackfill {
                 book.modifiedAt = book.createdAt
             }
-            do {
-                try context.save()
-            } catch {
-                print("Error saving context during backfill: \(error)")
-            }
+            try context.save()
         } catch {
             print("Error fetching books needing backfill: \(error)")
         }
