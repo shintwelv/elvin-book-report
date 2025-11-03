@@ -20,73 +20,77 @@ struct BookDetailView: View {
     @Environment(\.dismiss) private var dismiss
     
     var hasChanges: Bool {
-        vm.book.aiSummary != originalAiSummary || vm.book.myThoughts != originalMyThoughts
+        vm.aiSummary != originalAiSummary || vm.myThoughts != originalMyThoughts
     }
     
     var body: some View {
         Form {
-            Section("기본 정보") {
-                if let coverImage = vm.book.coverImage {
-                    HStack {
-                        Spacer()
-                        Image(uiImage: coverImage)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(maxWidth: 150, maxHeight: 200)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                            .shadow(radius: 4)
-                        Spacer()
-                    }
-                    .listRowBackground(Color.clear)
-                    
-                    HStack {
-                        PhotosPicker(selection: $selectedItem, matching: .images) {
-                            Label("이미지 변경", systemImage: "photo.on.rectangle")
-                                .frame(maxWidth: .infinity)
-                        }
-                        
-                        Button(role: .destructive) {
-                            vm.book.coverImage = nil
-                            Task { await vm.updateBook() }
-                        } label: {
-                            Label("이미지 삭제", systemImage: "trash")
-                                .frame(maxWidth: .infinity)
-                        }
-                    }
-                } else {
-                    HStack {
-                        Spacer()
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(Color.gray.opacity(0.2))
-                            .frame(width: 150, height: 200)
-                            .overlay {
-                                Image(systemName: "photo")
-                                    .font(.system(size: 50))
-                                    .foregroundStyle(.secondary)
-                            }
-                        Spacer()
-                    }
-                    .listRowBackground(Color.clear)
-                    
+            if let coverImage = vm.coverImage {
+                HStack {
+                    Spacer()
+                    Image(uiImage: coverImage)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxWidth: 150, maxHeight: 200)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .shadow(radius: 4)
+                    Spacer()
+                }
+                .listRowBackground(Color.clear)
+                
+                HStack {
                     PhotosPicker(selection: $selectedItem, matching: .images) {
-                        Label("이미지 추가", systemImage: "photo.on.rectangle.angled")
+                        Label("이미지 변경", systemImage: "photo.on.rectangle")
+                            .frame(maxWidth: .infinity)
+                    }
+                    
+                    Spacer()
+                    
+                    Button(role: .destructive) {
+                        Task { await vm.deleteCoverImage() }
+                    } label: {
+                        Label("이미지 삭제", systemImage: "trash")
                             .frame(maxWidth: .infinity)
                     }
                 }
+            } else {
+                HStack {
+                    Spacer()
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.gray.opacity(0.2))
+                        .frame(width: 150, height: 200)
+                        .overlay {
+                            Image(systemName: "photo")
+                                .font(.system(size: 50))
+                                .foregroundStyle(.secondary)
+                        }
+                    Spacer()
+                }
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
                 
-                Text(vm.book.title).font(.headline)
-                Text("\(vm.book.author) · \(vm.book.publisher)")
+                PhotosPicker(selection: $selectedItem, matching: .images) {
+                    Label("이미지 추가", systemImage: "photo.on.rectangle.angled")
+                        .frame(maxWidth: .infinity)
+                }
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
+            }
+            Section("기본 정보") {
+                Text(vm.title).font(.headline)
+                Text("\(vm.author) · \(vm.publisher)")
                     .font(.subheadline).foregroundStyle(.secondary)
             }
             Section("책 내용") {
                 if vm.isSummarizing { ProgressView() }
-                TextEditor(text: Binding(get: { vm.book.aiSummary }, set: { vm.book.aiSummary = $0 }))
+                TextEditor(text: $vm.aiSummary)
                     .frame(minHeight: 200)
-//                Button("요약 생성") { Task { await vm.makeSummary(from: sourceText.isEmpty ? vm.book.myThoughts : sourceText) } }
+                    .frame(maxHeight: 400)
             }
             Section("내 생각") {
-                TextEditor(text: Binding(get: { vm.book.myThoughts }, set: { vm.book.myThoughts = $0 }))
+                TextEditor(text: $vm.myThoughts)
                     .frame(minHeight: 200)
+                    .frame(maxHeight: 600)
             }
         }
         .navigationTitle("상세")
@@ -110,15 +114,15 @@ struct BookDetailView: View {
             }
         }
         .onAppear {
-            originalAiSummary = vm.book.aiSummary
-            originalMyThoughts = vm.book.myThoughts
+            originalAiSummary = vm.aiSummary
+            originalMyThoughts = vm.myThoughts
         }
         .alert("변경사항 저장", isPresented: $showSaveAlert) {
             Button("저장") {
                 Task {
-                    await vm.saveThoughts(vm.book.myThoughts)
-                    originalAiSummary = vm.book.aiSummary
-                    originalMyThoughts = vm.book.myThoughts
+                    await vm.saveChanges()
+                    originalAiSummary = vm.aiSummary
+                    originalMyThoughts = vm.myThoughts
                     dismiss()
                 }
             }
@@ -132,9 +136,9 @@ struct BookDetailView: View {
         .confirmationDialog("", isPresented: $showActionSheet) {
             Button("저장") {
                 Task { 
-                    await vm.saveThoughts(vm.book.myThoughts) 
-                    originalAiSummary = vm.book.aiSummary
-                    originalMyThoughts = vm.book.myThoughts
+                    await vm.saveChanges()
+                    originalAiSummary = vm.aiSummary
+                    originalMyThoughts = vm.myThoughts
                 }
             }
             Button("삭제", role: .destructive) {
@@ -149,10 +153,27 @@ struct BookDetailView: View {
             Task {
                 if let data = try? await newItem?.loadTransferable(type: Data.self),
                    let image = UIImage(data: data) {
-                    vm.book.coverImage = image
-                    await vm.updateBook()
+                    await vm.updateCoverImage(image)
                 }
             }
         }
+    }
+}
+
+#Preview {
+    NavigationStack {
+        BookDetailView(
+            vm: BookDetailViewModel(
+                repo: BookRepositoryPreview(),
+                summaryService: DummySummaryService(),
+                book: Book(
+                    title: "클린 코드",
+                    author: "로버트 C. 마틴",
+                    publisher: "인사이트",
+                    myThoughts: "코드의 품질을 높이는 방법에 대해 배웠습니다.",
+                    aiSummary: "소프트웨어 장인 정신에 대한 책으로, 좋은 코드를 작성하는 방법을 다룹니다."
+                )
+            )
+        )
     }
 }

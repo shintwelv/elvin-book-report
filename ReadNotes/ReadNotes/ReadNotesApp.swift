@@ -13,7 +13,12 @@ struct ReadNotesApp: App {
     @State private var container: ModelContainer = {
         let schema = Schema([Book.self])
         let config = ModelConfiguration(cloudKitDatabase: .automatic)
-        return try! ModelContainer(for: schema, configurations: config)
+        let container = try! ModelContainer(for: schema, configurations: config)
+        
+        // Backfill modifiedAt for existing books if needed
+        backfillModifiedDateIfNeeded(container: container)
+        
+        return container
     }()
 
     var body: some Scene {
@@ -24,8 +29,22 @@ struct ReadNotesApp: App {
                 .modelContainer(container)
         }
     }
-}
-
+    
+    static func backfillModifiedDateIfNeeded(container: ModelContainer) {
+        let context = ModelContext(container)
+        let descriptor = FetchDescriptor<Book>(
+            predicate: #Predicate { $0.modifiedAt == nil }
+        )
+        do {
+            let needsBackfill = try context.fetch(descriptor)
+            guard !needsBackfill.isEmpty else { return }
+            
+            for book in needsBackfill {
+                book.modifiedAt = book.createdAt
+            }
+            try context.save()
+        } catch {
+            print("Error during backfill fetch or save: \(error)")
 struct RootView: View {
     @Environment(\.appEnvironment) private var env
     @State private var path = NavigationPath()
